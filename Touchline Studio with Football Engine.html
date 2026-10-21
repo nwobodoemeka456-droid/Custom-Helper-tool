@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Touchline Documentary Studio & Football Engine</title>
+<style>
+:root{--ink:#e9f0ec;--line:#29443a;--soft:#142b22;--red:#ff5968;--free:#58d68d;--check:#f0b64a;--ac:#f2c14e;--bg:#0c1a17;--pn:#13271f;--cap:Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:radial-gradient(ellipse at 50% -20%,#18372b 0,var(--bg) 55%);color:var(--ink);font:15px/1.4 var(--sans);padding:env(safe-area-inset-top,0) 14px calc(env(safe-area-inset-bottom,0px) + 56px)}
+main{max-width:860px;margin:0 auto}
+
+/* Layout headers & panels */
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:16px 0 12px}
+h1{font:700 26px/1.1 var(--cap);margin:0;letter-spacing:-.4px}
+h1 span{color:var(--ac);font-style:italic}
+.sub{font-size:13px;color:#8fa69c;margin-top:3px}
+
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:var(--pn);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;transition:all .15s ease}
+button:active{filter:brightness(1.3)}
+button:disabled{opacity:.4}
+button.pri{background:var(--ac);border-color:var(--ac);color:#1a1405;font-weight:700}
+button.red{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+
+.box{background:#10231c;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;display:grid;gap:10px;box-shadow:0 12px 30px #00000018}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;background:var(--bg);color:var(--ink)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ac)}
+textarea{resize:vertical;min-height:110px}
+label.l{font-size:12px;color:#8fa69c;display:block;margin-bottom:3px}
+
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row>select{width:auto;flex:1}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bar{margin:12px 0 8px;justify-content:space-between}
+.hint{font-size:12px;color:#8fa69c;margin:0 0 8px}
+
+/* Tabs for the Football Engine Section */
+.tabs{border-bottom:1px solid var(--line);margin-bottom:12px;display:flex;gap:4px;overflow-x:auto}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;border-radius:0;color:#8fa69c;padding:8px 14px;white-space:nowrap}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--ac);font-weight:700}
+
+/* Video Canvas */
+#cv{width:100%;aspect-ratio:16/9;background:#fff;border-radius:10px;display:block;box-shadow:0 8px 28px rgba(0,0,0,.45)}
+
+/* Shot cards */
+.card{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;display:grid;gap:9px;background:var(--pn);box-shadow:0 5px 18px #00000012}
+.card.ok{border-color:var(--free)}
+.n{font:700 15px var(--cap);min-width:26px}
+.chip{padding:3px 10px;font-weight:700;border-radius:999px;font-size:12px}
+.chip.CLIP{background:var(--ink);color:var(--bg)}
+.chip.CARD{background:var(--red);color:#fff}
+.chip.IMAGE{background:var(--line);color:var(--ink)}
+.tag{padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid}
+.tag.Free{color:var(--free);border-color:var(--free)}
+.tag.Check{color:var(--check);border-color:var(--check)}
+.tag.Risky{color:var(--red);border-color:var(--red)}
+
+.done{margin-left:auto;font-size:13px;display:flex;align-items:center;gap:5px}
+.done input{width:auto}
+.cap{font:16px/1.35 var(--cap);margin:0;padding:10px;border-radius:8px;background:#0d2019;border:1px solid #20392f;color:#edf5f0}
+.cue{background:#2a2410;color:#edf5f0;border:2px dashed #f2c14e;border-radius:8px;padding:8px 10px;margin:4px 0;font-size:13px;line-height:1.5}
+.cue b{font-size:11px;letter-spacing:.06em;color:#f2c14e}
+.cue .cw{color:#ff8a94;font-weight:700}
+.src{font-size:12px;color:#8fa69c;line-height:1.5;overflow-wrap:anywhere}
+
+/* Search results grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.it{background:#10231c;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:grid}
+.it img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#000}
+.it small{padding:4px 8px;color:#8fa69c;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it div{display:flex;gap:6px;padding:6px}
+.it a,.it button{flex:1;text-align:center;padding:5px;font-size:12px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;text-decoration:none}
+
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);background:var(--ac);color:#1a1405;font-weight:700;padding:9px 16px;border-radius:999px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;z-index:99}
+@media(min-width:700px){.two{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<main>
+  <!-- Top Navigation & Header -->
+  <div class="top">
+    <div>
+      <h1>Touchline <span>Studio</span></h1>
+      <div class="sub">Documentary planning · Football match & table graphics engine</div>
+    </div>
+    <button onclick="$('settings').hidden = !$('settings').hidden">Keys & API</button>
+  </div>
+
+  <!-- Settings Panel -->
+  <section id="settings" class="box" hidden>
+    <div class="two">
+      <div><label class="l">Gemini API key</label><input id="k-gemini" type="password" placeholder="AIzaSy..."></div>
+      <div><label class="l">YouTube Data API key</label><input id="k-yt" type="password"></div>
+      <div><label class="l">Pixabay API key</label><input id="k-px" type="password"></div>
+      <div><label class="l">TheSportsDB key (optional)</label><input id="k-tsdb" type="password" placeholder="Club badges key"></div>
+    </div>
+    <button class="pri" onclick="saveKeys()">Save keys</button>
+    <p class="hint" style="margin:0">Keys remain local in your browser. YouTube & Pixabay enable asset searching.</p>
+  </section>
+
+  <!-- Section 1: Integrated Football Graphics Engine -->
+  <section class="box" id="football-engine-box">
+    <div class="top" style="margin:0">
+      <h2 style="font:700 20px/1 var(--cap);margin:0;color:var(--ac)">Football Engine Workspace</h2>
+      <span class="hint" style="margin:0">Broadcast-quality renderer (1080p)</span>
+    </div>
+
+    <!-- Canvas Preview -->
+    <canvas id="cv" width="1920" height="1080"></canvas>
+
+    <!-- Canvas Controls -->
+    <div class="row bar" style="margin:8px 0">
+      <div class="row">
+        <button class="pri" onclick="play()">Play render</button>
+        <button onclick="vid()">Save video</button>
+        <button onclick="png()">Save image</button>
+      </div>
+      <div class="row">
+        <label class="l" style="margin:0">Shot #</label>
+        <input id="shot" type="number" min="1" value="1" style="width:70px">
+      </div>
+    </div>
+
+    <!-- Engine Mode Tabs -->
+    <div class="tabs" id="tabs">
+      <button class="on" data-t="match">Match Card</button>
+      <button data-t="table">League Table</button>
+      <button data-t="find">Asset Finder</button>
+    </div>
+
+    <!-- Tab 1: Match Card Panel -->
+    <div class="panel" id="p-match">
+      <div class="two">
+        <div><label class="l">Home team</label><input id="m-h" value="Real Madrid"></div>
+        <div><label class="l">Away team</label><input id="m-a" value="Barcelona"></div>
+      </div>
+      <div class="two">
+        <div><label class="l">Home score (empty for VS)</label><input id="m-sh" inputmode="numeric" value="2"></div>
+        <div><label class="l">Away score</label><input id="m-sa" inputmode="numeric" value="2"></div>
+      </div>
+      <div class="two">
+        <div><label class="l">Top line / Competition</label><input id="m-l" placeholder="El Clásico, 2011"></div>
+        <div><label class="l">Stamp overlay</label><input id="m-st" placeholder="DRAW"></div>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <button class="pri" onclick="fb()">Find club badges</button>
+        <button onclick="$('u-h').click()">Upload Home Badge</button>
+        <button onclick="$('u-a').click()">Upload Away Badge</button>
+        <input id="u-h" type="file" accept="image/*" hidden onchange="up(this,'m-h')">
+        <input id="u-a" type="file" accept="image/*" hidden onchange="up(this,'m-a')">
+      </div>
+      <p class="hint">Badges are fetched automatically via TheSportsDB or uploaded manually.</p>
+    </div>
+
+    <!-- Tab 2: Animated Table Panel -->
+    <div class="panel" id="p-table" hidden>
+      <div><label class="l">Table Title</label><input id="t-title" value="League table"></div>
+      <div>
+        <label class="l">Table before movement (Format: Team Points)</label>
+        <textarea id="t-before">Team A 60
+Team B 57
+Team C 55
+Team D 52
+Team E 50
+Team F 48
+Team G 45
+Team H 41</textarea>
+      </div>
+      <div>
+        <label class="l">Points movement (+9 or -12 adds/removes points)</label>
+        <textarea id="t-moves" style="min-height:60px">Team G +9</textarea>
+      </div>
+      <button onclick="tbd()">Load badges for table teams</button>
+      <p class="hint">Teams automatically re-sort live and slide past the teams they overtake.</p>
+    </div>
+
+    <!-- Tab 3: Finder / Media Source Panel -->
+    <div class="panel" id="p-find" hidden>
+      <div class="two">
+        <input id="f-q" placeholder="Search team, stadium, or match clips...">
+        <select id="f-k"><option value="images">Images</option><option value="clips">Clips</option></select>
+      </div>
+      <div class="row">
+        <button class="pri" onclick="find()">Search Media Sources</button>
+        <label class="row" style="margin:0"><input id="f-cc" type="checkbox" style="width:auto"> Creative Commons YouTube only</label>
+      </div>
+      <div id="res" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <!-- Section 2: Documentary Script & Visual Plan -->
+  <section class="box">
+    <h2 style="font:700 18px/1 var(--cap);margin:0">Documentary Script & Editing Planner</h2>
+    <input id="topic" placeholder="Video topic / Title (e.g. The Financial Collapse of Bury FC)">
+    <textarea id="script" placeholder="Paste documentary voiceover script here. CAPITALS or 'Act 1' become chapter cards automatically."></textarea>
+    <div class="row">
+      <select id="words">
+        <option value="6">Fast pacing (~6 words per shot)</option>
+        <option value="9" selected>Standard documentary pacing (~9 words per shot)</option>
+        <option value="12">Slow pacing (~12 words per shot)</option>
+      </select>
+      <button class="pri" onclick="doCut()">Cut script to shots</button>
+      <button class="red" id="planBtn" onclick="plan(this)">Build Visual Plan (AI)</button>
+    </div>
+  </section>
+
+  <!-- Shot Actions & List -->
+  <div class="row bar">
+    <span id="stat" style="font-weight:700">No shots created yet</span>
+    <div class="row">
+      <button onclick="copy(shotList())">Copy Shot List</button>
+      <button onclick="copy(editPlan())">Copy Edit Timeline</button>
+      <button onclick="clearAll()">Clear All</button>
+    </div>
+  </div>
+
+  <div id="list"></div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id), LS = localStorage, W = 1920, H = 1080;
+const cl = x => Math.min(1, Math.max(0, x)), ez = x => 1 - Math.pow(1 - cl(x), 3), lerp = (a, b, t) => a + (b - a) * t;
+const SERIF = 'Georgia,"Times New Roman",serif', SANS = 'system-ui,-apple-system,"Segoe UI",sans-serif';
+const sv = (k, v) => { try { LS.setItem(k, v); } catch (e) {} }, ld = k => { try { return LS.getItem(k) || ''; } catch (e) { return ''; } };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m) { const t = $('toast'); t.textContent = m; t.style.opacity = 1; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.opacity = 0, 2600); }
+
+/* ---------- FOOTBALL ENGINE CORE ---------- */
+const c = $('cv').getContext('2d');
+let mode = 'match', busy = false, raf = 0;
+const DUR = {match: 5.2, table: 6};
+
+/* Badges logic */
+const BD = {};
+function setBadge(n, src, cors) {
+  return new Promise(r => {
+    const i = new Image(); if (cors) i.crossOrigin = 'anonymous';
+    i.onload = () => { BD[n.toLowerCase()] = i; r(i); draw(); };
+    i.onerror = () => r(null); i.src = src;
+  });
+}
+async function findBadge(n) {
+  const k = n.toLowerCase(); if (BD[k]) return BD[k];
+  try {
+    const d = await (await fetch('https://www.thesportsdb.com/api/v1/json/' + encodeURIComponent(ld('k_tsdb') || '3') + '/searchteams.php?t=' + encodeURIComponent(n))).json();
+    const u = d.teams && d.teams[0] && d.teams[0].strBadge;
+    if (u) return await setBadge(n, u, 1);
+  } catch (e) {}
+  return null;
+}
+async function fb() {
+  toast('Finding badges...'); const m = M();
+  const r = await Promise.all([findBadge(m.h), findBadge(m.a)]);
+  toast(r.every(Boolean) ? 'Badges loaded' : 'A badge was not found. Upload it instead.');
+}
+async function tbd() {
+  const d = TB(); if (!d) return toast('Add a table first');
+  toast('Loading badges...'); for (const r of d.bf) await findBadge(r.n);
+  draw(); toast('Badges loaded');
+}
+function up(inp, id) { const f = inp.files[0]; if (f) setBadge($(id).value || 'Home', URL.createObjectURL(f), 0); inp.value = ''; }
+
+/* Engine Drawing Helpers */
+function tx(s, x, y, f, col, al) { c.font = f; c.fillStyle = col; c.textAlign = al || 'center'; c.textBaseline = 'middle'; c.fillText(s, x, y); }
+function badgeAt(n, x, y, s) {
+  const i = BD[n.toLowerCase()];
+  if (i) { const r = Math.min(s / i.width, s / i.height), w = i.width * r, h = i.height * r; c.drawImage(i, x - w / 2, y - h / 2, w, h); return; }
+  let h = 0; for (const ch of n) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  c.fillStyle = `hsl(${h} 45% 38%)`; c.beginPath(); c.arc(x, y, s / 2, 0, 7); c.fill();
+  tx(n.split(/\s+/).map(w => w[0]).join('').slice(0, 3).toUpperCase(), x, y + 2, `700 ${s * .36}px ${SANS}`, '#fff');
+}
+function stamp(s, x, y, p) {
+  if (p <= 0) return;
+  c.save(); c.translate(x, y); c.rotate(-.07); const k = 1 + (1 - ez(p)) * .8; c.scale(k, k); c.globalAlpha = ez(p);
+  c.font = `700 64px ${SANS}`; const w = c.measureText(s).width + 64;
+  c.strokeStyle = c.fillStyle = '#ff5968'; c.lineWidth = 8; c.strokeRect(-w / 2, -52, w, 104);
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s, 0, 4); c.restore();
+}
+
+/* Engine: Match Graphics */
+const M = () => ({h: $('m-h').value.trim() || 'Home', a: $('m-a').value.trim() || 'Away', sh: $('m-sh').value.trim(), sa: $('m-sa').value.trim(), line: $('m-l').value.trim(), st: $('m-st').value.trim()});
+function sMatch(t) {
+  const m = M(), cx = W / 2, by = 500;
+  if (m.line) tx(m.line, cx, 150, `400 46px ${SERIF}`, '#8fa69c');
+  const a = ez(t / .9), hx = lerp(-300, 520, a), ax = lerp(W + 300, W - 520, a);
+  badgeAt(m.h, hx, by, 400); badgeAt(m.a, ax, by, 400);
+  c.globalAlpha = ez((t - .7) / .5);
+  tx(m.h, 520, by + 270, `700 58px ${SERIF}`, '#e9f0ec'); tx(m.a, W - 520, by + 270, `700 58px ${SERIF}`, '#e9f0ec');
+  c.globalAlpha = 1;
+  const hasS = m.sh !== '' && m.sa !== '', vs = ez((t - .9) / .35), sc = hasS ? ez((t - 2.2) / .4) : 0;
+  if (vs > 0 && sc < 1) {
+    c.save(); c.globalAlpha = vs * (1 - sc); c.translate(cx, by); const k = 1 + (1 - vs) * .6; c.scale(k, k);
+    tx('VS', 0, 0, `700 170px ${SERIF}`, '#ff5968'); c.restore();
+  }
+  if (sc > 0) {
+    const k = cl((t - 2.2) / .9); c.globalAlpha = sc;
+    tx(`${Math.round(lerp(0, +m.sh, k))} – ${Math.round(lerp(0, +m.sa, k))}`, cx, by, `700 200px ${SERIF}`, '#e9f0ec'); c.globalAlpha = 1;
+  }
+  if (m.st) stamp(m.st, cx, by + 400, (t - 3.6) / .4);
+}
+
+/* Engine: Animated Table */
+function pr(txt) {
+  return txt.replace(/−/g, '-').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+    const m = l.match(/^(.*?)[\s:,]+([+-]?\d+)$/); return m ? {n: m[1].trim(), raw: m[2], v: parseInt(m[2], 10)} : null;
+  }).filter(Boolean);
+}
+function TB() {
+  const bf = pr($('t-before').value).map(r => ({n: r.n, p: r.v})); if (bf.length < 2) return null;
+  const dl = {};
+  pr($('t-moves').value).forEach(m => {
+    const b = bf.find(r => r.n.toLowerCase() === m.n.toLowerCase());
+    if (b) dl[b.n] = /^[+-]/.test(m.raw) ? m.v : m.v - b.p;
+  });
+  const af = bf.map((r, i) => ({n: r.n, p: r.p + (dl[r.n] || 0), i})).sort((a, b) => b.p - a.p || a.i - b.i);
+  return {bf, af, mv: Object.keys(dl), dl};
+}
+function sTable(t) {
+  const d = TB(); if (!d) return;
+  const N = d.bf.length, RH = 84, show = Math.min(10, N), m0 = d.mv[0];
+  tx($('t-title').value.trim() || 'League table', W / 2, 95, `700 52px ${SERIF}`, '#e9f0ec');
+  let s = 0;
+  if (m0) { const o = d.bf.findIndex(r => r.n === m0), n = d.af.findIndex(r => r.n === m0); s = Math.max(0, Math.min(N - show, Math.min(o, n) - 1)); }
+  c.save(); c.beginPath(); c.rect(0, 170, W, show * RH + 40); c.clip();
+  const k = ez((t - 1.2) / 1.6);
+  d.bf.map((r, o) => ({r, o})).sort((a, b) => d.mv.includes(a.r.n) - d.mv.includes(b.r.n)).forEach(({r, o}) => {
+    const n = d.af.findIndex(x => x.n === r.n), i = lerp(o, n, k), y = 190 + (i - s) * RH + RH / 2, hot = d.mv.includes(r.n);
+    c.globalAlpha = ez(t / .5 - (o - s) * .07);
+    if (hot) { c.fillStyle = '#18372b'; c.fillRect(260, y - RH / 2 + 4, 1400, RH - 8); } else { c.fillStyle = '#29443a'; c.fillRect(260, y + RH / 2 - 2, 1400, 2); }
+    const col = hot ? '#ff5968' : '#e9f0ec';
+    tx(String(Math.round(i) + 1), 320, y, `700 44px ${SERIF}`, col);
+    badgeAt(r.n, 420, y, 58);
+    tx(r.n, 490, y, `${hot ? 700 : 400} 44px ${SERIF}`, col, 'left');
+    tx(String(Math.round(lerp(r.p, d.af[n].p, k))), 1480, y, `700 46px ${SERIF}`, col, 'right');
+    if (hot && k >= 1 && n !== o) tx((n < o ? '▲ ' : '▼ ') + Math.abs(o - n), 1590, y, `700 38px ${SANS}`, n < o ? '#58d68d' : '#ff5968');
+  });
+  c.restore();
+  if (m0 && d.dl[m0] !== 0) stamp((d.dl[m0] < 0 ? '−' : '+') + Math.abs(d.dl[m0]) + ' PTS', 1540, 95, (t - 3.2) / .4);
+}
+
+/* Playback & Export */
+function scene(t) { c.fillStyle = '#0c1a17'; c.fillRect(0, 0, W, H); (mode === 'table' ? sTable : sMatch)(t); }
+function draw() { if (!busy) scene(DUR[mode]); }
+function play() {
+  cancelAnimationFrame(raf); busy = true; const t0 = performance.now(), D = DUR[mode];
+  (function f(n) { const t = (n - t0) / 1000; scene(Math.min(t, D)); if (t < D) raf = requestAnimationFrame(f); else busy = false; })(t0);
+}
+function save(b, ext) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+  a.download = String($('shot').value || 1).padStart(3, '0') + '_' + mode + ext; a.click();
+}
+function vid() {
+  if (!window.MediaRecorder) return toast('This browser cannot record video. Use Save image.');
+  const mime = ['video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find(m => MediaRecorder.isTypeSupported(m));
+  let rec; try { rec = new MediaRecorder($('cv').captureStream(30), mime ? {mimeType: mime, videoBitsPerSecond: 12e6} : {}); } catch (e) { return toast('Recording error. Use Save image.'); }
+  const ch = []; rec.ondataavailable = e => e.data.size && ch.push(e.data);
+  rec.onstop = () => { save(new Blob(ch, {type: mime || 'video/webm'}), mime && mime.includes('mp4') ? '.mp4' : '.webm'); toast('Video exported'); };
+  rec.start(); play(); setTimeout(() => rec.stop(), (DUR[mode] + .6) * 1000);
+}
+function png() {
+  busy = false; draw();
+  try { $('cv').toBlob(b => b ? save(b, '.png') : toast('Export blocked. Upload badge directly.')); }
+  catch (e) { toast('Cross-origin badge blocks export. Upload it locally.'); }
+}
+
+/* Media Source Search */
+const J = u => fetch(u).then(r => { if (!r.ok) throw 0; return r.json(); });
+const strip = h => String(h || '').replace(/<[^>]*>/g, '').trim();
+const need = k => { const v = ld(k); if (!v) throw 'key'; return v; };
+const SRC = {
+  Commons: q => J(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=12&gsrsearch=${q}%20filetype%3Abitmap&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=320&format=json&origin=*`)
+    .then(d => Object.values((d.query || {}).pages || {}).filter(p => p.imageinfo).map(p => { const i = p.imageinfo[0], e = i.extmetadata || {}; return {t: i.thumburl, u: i.descriptionurl, l: (e.LicenseShortName || {}).value || 'Page', b: strip((e.Artist || {}).value)}; })),
+  Pixabay: q => J(`https://pixabay.com/api/?key=${need('k_px')}&q=${q}&per_page=12`)
+    .then(d => d.hits.map(h => ({t: h.previewURL, u: h.pageURL, l: 'Pixabay', b: h.user}))),
+  'Pixabay clips': q => J(`https://pixabay.com/api/videos/?key=${need('k_px')}&q=${q}&per_page=12`)
+    .then(d => d.hits.map(h => ({t: (h.videos.tiny || h.videos.small || {}).thumbnail, u: h.pageURL, l: 'Pixabay', b: h.user}))),
+  YouTube: q => { const cc = $('f-cc').checked; return J(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q=${q}${cc ? '&videoLicense=creativeCommon' : ''}&key=${need('k_yt')}`)
+    .then(d => d.items.map(x => ({t: x.snippet.thumbnails.medium.url, u: 'https://www.youtube.com/watch?v=' + x.id.videoId, l: cc ? 'CC BY' : 'YouTube', b: x.snippet.channelTitle}))); }
+};
+let R = [];
+async function find() {
+  const raw = $('f-q').value.trim(); if (!raw) return toast('Type something to search');
+  const q = encodeURIComponent(raw), names = $('f-k').value === 'clips' ? ['YouTube', 'Pixabay clips'] : ['Commons', 'Pixabay'];
+  $('res').textContent = 'Searching...'; R = []; let h = '';
+  const out = await Promise.allSettled(names.map(n => SRC[n](q)));
+  out.forEach((r, i) => {
+    h += `<div style="font-weight:700;margin:10px 0 4px;color:var(--ac)">${names[i]}</div>`;
+    if (r.status === 'rejected') { h += `<p class="hint">${r.reason === 'key' ? 'Add key in top Settings.' : 'No results or key missing.'}</p>`; return; }
+    if (!r.value.length) { h += '<p class="hint">No media found.</p>'; return; }
+    h += '<div class="grid">' + r.value.map(x => {
+      R.push({...x, s: names[i]});
+      return `<div class="it"><img src="${esc(x.t)}" loading="lazy" alt="">Small:${esc(x.l)}<div><a href="${esc(x.u)}" target="_blank">Open</a><button onclick="cred(${R.length - 1})">Credit</button></div></div>`;
+    }).join('') + '</div>';
+  });
+  $('res').innerHTML = h;
+}
+async function cred(i) {
+  const x = R[i], t = `${x.s}${x.b ? ' · ' + x.b : ''} · ${x.l} · ${x.u}`;
+  try { await navigator.clipboard.writeText(t); toast('Credit copied'); } catch (e) { toast(t); }
+}
+
+/* Engine Tab Switching */
+$('tabs').onclick = e => {
+  const t = e.target.dataset.t; if (!t) return;
+  [...$('tabs').children].forEach(b => b.classList.toggle('on', b === e.target));
+  ['match', 'table', 'find'].forEach(n => $('p-' + n).hidden = n !== t);
+  if (t === 'match' || t === 'table') { mode = t; busy = false; draw(); }
+};
+
+/* ---------- SCRIPT CUTTER & DOCUMENTARY PLANNER ---------- */
+let S = {topic:'', script:'', shots:[], uid:1};
+
+function cutScript(raw, target) {
+  const out = [];
+  raw.replace(/\r/g,'').replace(/\[[^\]]*\]/g,' ').split(/\n+/).map(p=>p.trim()).filter(Boolean).forEach(p => {
+    if (/^[A-Z0-9 &'’-]{3,}$/.test(p) || /^act\s*\d/i.test(p)) {
+      out.push({text: p, type: 'CARD'}); return;
+    }
+    const words = p.split(/\s+/);
+    for (let i = 0; i < words.length; i += target) {
+      out.push({text: words.slice(i, i + target).join(' '), type: 'IMAGE'});
+    }
+  });
+  return out;
+}
+
+function doCut() {
+  const sc = $('script').value.trim(); if (!sc) return toast('Paste a script first');
+  S.script = sc; S.topic = $('topic').value.trim();
+  S.shots = cutScript(sc, +$('words').value).map((o, idx) => ({
+    id: S.uid++, text: o.text, type: o.type, term: o.text.split(' ').slice(0, 4).join(' '), visual: ''
+  }));
+  render(); toast(S.shots.length + ' shots created');
+}
+
+function loadMatchToEngine(h, a, sh, sa) {
+  $('m-h').value = h; $('m-a').value = a;
+  $('m-sh').value = sh || ''; $('m-sa').value = sa || '';
+  mode = 'match';
+  [...$('tabs').children].forEach(b => b.classList.toggle('on', b.dataset.t === 'match'));
+  ['match', 'table', 'find'].forEach(n => $('p-' + n).hidden = n !== 'match');
+  fb(); draw();
+  window.scrollTo({top: $('football-engine-box').offsetTop - 20, behavior: 'smooth'});
+}
+
+function render() {
+  const l = $('list');
+  $('stat').textContent = S.shots.length ? `${S.shots.length} shots planned` : 'No shots created yet';
+  if (!S.shots.length) { l.innerHTML = ''; return; }
+  
+  l.innerHTML = S.shots.map((s, i) => {
+    const match = s.text.match(/([A-Z][a-zA-Z\s]+)\s+(?:vs|v|-)\s+([A-Z][a-zA-Z\s]+)(?:\s+(\d+)-(\d+))?/i);
+    const engineBtn = match ? `<button class="pri" onclick="loadMatchToEngine('${esc(match[1].trim())}', '${esc(match[2].trim())}', '${match[3]||''}', '${match[4]||''}')">Load into Football Engine</button>` : '';
+
+    return `<div class="card">
+      <div class="row">
+        <span class="n">${i + 1}</span>
+        <span class="chip ${s.type}">${s.type}</span>
+        <input style="flex:1" value="${esc(s.term)}" oninput="S.shots[${i}].term=this.value" placeholder="Search query">
+        ${engineBtn}
+      </div>
+      <div class="cap">${esc(s.text)}</div>
+      <div class="cue"><b>SUGGESTION:</b> ${s.type === 'CARD' ? 'Use Football Engine Title or League Card' : 'Search asset using query above'}</div>
+    </div>`;
+  }).join('');
+}
+
+async function plan(btn) {
+  if (!S.shots.length) return toast('Cut script first');
+  const k = ld('k_gemini'); if (!k) { $('settings').hidden = false; return toast('Add Gemini key in Settings'); }
+  btn.disabled = true; toast('Building visual plan...');
+  
+  try {
+    const prompt = `Return JSON array for these documentary shots with refined "term" (2-5 word search query) and "type" (IMAGE, CLIP, CARD): ${JSON.stringify(S.shots.map(s => s.text))}`;
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${k}`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({contents: [{parts: [{text: prompt}]}], generationConfig: {responseMimeType: 'application/json'}})
+    });
+    const d = await r.json();
+    const res = JSON.parse(d.candidates[0].content.parts[0].text);
+    res.forEach((o, i) => { if (S.shots[i]) { S.shots[i].term = o.term || S.shots[i].term; if (o.type) S.shots[i].type = o.type; } });
+    render(); toast('Plan built successfully');
+  } catch (e) { toast('AI Planning failed'); }
+  btn.disabled = false;
+}
+
+function shotList() { return S.shots.map((s, i) => `${i + 1}. [${s.type}] ${s.text} -> ${s.term}`).join('\n'); }
+function editPlan() { return S.shots.map((s, i) => `Shot ${i + 1}: ${s.text}\nVisual Query: ${s.term}\n`).join('\n'); }
+function copy(t) { navigator.clipboard.writeText(t); toast('Copied to clipboard'); }
+function clearAll() { S.shots = []; render(); }
+function saveKeys() {
+  sv('k_gemini', $('k-gemini').value.trim());
+  sv('k_yt', $('k-yt').value.trim());
+  sv('k_px', $('k-px').value.trim());
+  sv('k_tsdb', $('k-tsdb').value.trim());
+  $('settings').hidden = true; toast('Keys saved');
+}
+
+/* Initialization */
+$('k-gemini').value = ld('k_gemini');
+$('k-yt').value = ld('k_yt');
+$('k-px').value = ld('k_px');
+$('k-tsdb').value = ld('k_tsdb');
+document.addEventListener('input', e => { if (e.target.closest('#p-match,#p-table')) draw(); });
+draw(); play();
+</script>
+</body>
+</html>
